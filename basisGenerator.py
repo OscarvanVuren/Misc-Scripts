@@ -8,52 +8,61 @@ def basis_generator(frag, path, level, ecp_species):
     #    Chemshell Fragment object
     # level: str
     #    Basis set level to use. 'light', 'intermediate', ...
-    # point_charge_species: str
-    #    Species used by Chemshell to define the location of point charges
-    
+    # ecp_species: str
+    #    Species represented by pseudopotentials in the boundary region
+
+    from os import listdir
+    import re
+
     print(frag.names)
 
     # Make a list of the species in the calculation    
     symbols = list(dict.fromkeys(frag.symbols)) 
     print(symbols)
     
-    atomic_numbers = list(dict.fromkeys(frag.znums))
-    print(atomic_numbers)
-    
-    # Format the list so it matches the path formatting     
+    # Create a list of the needed filenames for the elements contained in the fragment
     path_var = list([])
-    for i in range(len(symbols)):
-        #print(len(str(atomic_numbers[i])))
-        if len(str(atomic_numbers[i])) < 2:
-            atomic_numbers[i] = '0' + str(atomic_numbers[i])
-    
-        #print(str(symbols[i]))
-        #print(str(atomic_numbers[i]))
-        prefix = str(atomic_numbers[i]) + '_' + str(symbols[i])
-        print(prefix)
-        path_var.append(prefix)
+    defaults = listdir(path + '/' + level)
+    for chem_symbol in symbols:
+        target = chem_symbol + '_default$'
+        for speciesfilename in defaults:
+            test = re.search(target, speciesfilename)
+            if test is None:
+                continue
+            if test.string == '09_F_default':
+                continue
+                # Removing the fluorine representing point charges
+            else:
+                print(test.string)
+                path_var.append(test.string)
 
     print(path_var)
 
     # Open a new file, overwriting the previous one    
     fhiaims_basis = open('fhiaims.basis', 'w')
 
-    # Write the definition for emptium    
+    # Write in the definition for Emptium
     print('Emptium')
-    Ep_path = path + '/light/00_Emptium_default'
-    basis_file = open(Ep_path)
+    ep_path = path + '/light/00_Emptium_default'
+    basis_file = open(ep_path)
     basis_set = basis_file.read()
-    #print(basis_set)
     fhiaims_basis.write(basis_set)
     basis_file.close()
     fhiaims_basis.close()
 
-    if bool(ecp_species) == True:
+    # Add in the basis set for any pseudopotentials
+    if ecp_species is True:
         print('ECP in use')
-        ecp_path = path + '/' + level + '/' + ecp_species + '_default'
+        ecp_target = ecp_species + '_default'
+        for speciesfilename in defaults:
+            test = re.search(ecp_target, speciesfilename)
+            if test is None:
+                continue
+            else:
+                ecp_basis = test.string
+        ecp_path = path + '/' + level + '/' + ecp_basis
         basis_file = open(ecp_path)
         basis_set = basis_file.read()
-        #print(basis_set)
         fhiaims_basis = open('fhiaims.basis', 'a')
         fhiaims_basis.write(basis_set)
         basis_file.close()
@@ -61,11 +70,9 @@ def basis_generator(frag, path, level, ecp_species):
                    
     # Write the other basis set definitions    
     for symbol in path_var:
-        #print(symbol)
         sp_path = path + '/' + level + '/' + symbol + '_default'
         basis_file = open(sp_path)
         basis_set = basis_file.read()
-        #print(basis_set)
         fhiaims_basis = open('fhiaims.basis', 'a')
         fhiaims_basis.write(basis_set)
         basis_file.close()
