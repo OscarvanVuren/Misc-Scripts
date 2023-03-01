@@ -1,4 +1,4 @@
-def basis_generator(frag, path, level, ecp_species):
+def basis_generator(frag, path, level, ecp_species, ecp_file):
 
     # A simple function to write the fhiaims.basis files required for a QM/MM
     # calculation with Chemshell. Eventually to be incorporated into the
@@ -10,11 +10,10 @@ def basis_generator(frag, path, level, ecp_species):
     #    Basis set level to use. 'light', 'intermediate', ...
     # ecp_species: str
     #    Species represented by pseudopotentials in the boundary region
-
+    # ecp_file: str
+    #    Name of the file containing pseudopotential information (.cpi)
     from os import listdir
     import re
-
-    print(frag.names)
 
     # Make a list of the species in the calculation    
     symbols = list(dict.fromkeys(frag.symbols)) 
@@ -50,9 +49,9 @@ def basis_generator(frag, path, level, ecp_species):
     basis_file.close()
     fhiaims_basis.close()
 
-    # Add in the basis set for any pseudopotentials
-    if ecp_species is True:
-        print('ECP in use')
+    # Get and edit the default file for the species represented by pseudopotentials
+    if bool(ecp_species) is True:
+        print('ECPs in use')
         ecp_target = ecp_species + '_default'
         for speciesfilename in defaults:
             test = re.search(ecp_target, speciesfilename)
@@ -62,7 +61,24 @@ def basis_generator(frag, path, level, ecp_species):
                 ecp_basis = test.string
         ecp_path = path + '/' + level + '/' + ecp_basis
         basis_file = open(ecp_path)
-        basis_set = basis_file.read()
+        basis_set_lines = basis_file.readlines()
+        target_string = '  species        ' + ecp_species
+        for i in range(len(basis_set_lines)):
+            line_test = re.search(target_string, basis_set_lines[i])
+            if line_test is None:
+                continue
+            else:
+                basis_set_lines[i] = '  species        bq_' + ecp_species + '2_e\n'
+                # Written backwards due to insert() adding before the given index
+                basis_set_lines.insert(i+5, '    include_min_basis   .false.\n')
+                basis_set_lines.insert(i+5, '    nonlinear_core	.false.\n')
+                basis_set_lines.insert(i+5, '    pp_local_component  1\n')
+                basis_set_lines.insert(i+5, '    pp_charge           2.0\n')
+                basis_set_lines.insert(i+5, '    pseudo              ' + ecp_file + '\n')
+                basis_set_lines.insert(i+5, '\n')
+                basis_set_lines.insert(i+5, '# PSP\n')
+                break
+        basis_set = ''.join(basis_set_lines)
         fhiaims_basis = open('fhiaims.basis', 'a')
         fhiaims_basis.write(basis_set)
         basis_file.close()
