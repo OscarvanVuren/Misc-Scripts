@@ -1,0 +1,25 @@
+def traj2cellpar(traj, image=-1, rounding=8):
+
+  import numpy as np
+  from ase import Atoms
+  from ase.io import Trajectory
+
+  imprt = Trajectory(traj)
+  atoms=imprt[image]
+  rounding = rounding
+
+  with open('CellData.txt', 'w') as cd:
+
+      cd.write('Rounding to ' + str(rounding) + ' decimal places' + '\n')
+      cd.write('\n')
+      cd.write('Atoms Object'+ '\n')
+      cd.write(str(atoms)+ '\n')
+      cd.write('\n')
+      cd.write('Cell Vectors'+ '\n')
+      cd.write(str(np.round(atoms.cell, rounding)) + '\n')
+      cd.write('\n')
+      cd.write('Cell Parameters' + '\n')
+      cd.write(str(atoms.cell.cellpar()) + '\n')
+      cd.write('\n')
+      cd.write('Scaled Atomic Positions' + '\n')
+      cd.write(str(np.round(atoms.get_scaled_positions(), rounding)) + '\n')
