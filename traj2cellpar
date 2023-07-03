@@ -1,4 +1,8 @@
 def traj2cellpar(traj, image=-1, rounding=8):
+  # Small function to write out the cell data from an ASE trajectory file.
+  # traj : (str)  Filename of trajectory
+  # image : (int) Image to print cell data from
+  # rounding : (int) Number of decimal places to round to
 
   import numpy as np
   from ase import Atoms
