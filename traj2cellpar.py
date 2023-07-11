@@ -12,6 +12,7 @@ def traj2cellpar(traj, image=-1, rounding=8):
   atoms=imprt[image]
   rounding = rounding
 
+  print('Writing cell data to file CellData.txt')
   with open('CellData.txt', 'w') as cd:
 
       cd.write('Rounding to ' + str(rounding) + ' decimal places' + '\n')
