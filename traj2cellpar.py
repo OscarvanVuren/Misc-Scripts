@@ -30,7 +30,7 @@ def traj2cellpar(traj, image=-1, rounding=8):
       cd.write(str(np.round(atoms.get_scaled_positions(), rounding)) + '\n')
       cd.write('\n')
       cd.write('Scaled Atomic Positions Labeled by Element' + '\n')
-      for atom in range(len(unit.symbols)):
-        cd.write(unit.symbols[atom])
+      for atom in range(len(atoms.symbols)):
+        cd.write(atoms.symbols[atom])
         cd.write(str(np.round(atoms.get_scaled_positions()[atom], rounding)) + '\n')
       
